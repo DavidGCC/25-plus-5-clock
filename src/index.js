@@ -97,10 +97,10 @@ const TimerControls = ({ isRunning, toggleTimer, reset }) => {
 const App = () => {
     const [breakValue, setBreakValue] = React.useState(5);
     const [sessionValue, setSessionValue] = React.useState(25);
-    const [currentLabel, setCurrentLabel] = React.useState("Session");
-    const [timeLeft, setTimeLeft] = React.useState(1500);
     const [isRunning, setIsRunning] = React.useState(false);
     const [timerInterval, setTimerInterval] = React.useState();
+    const [timer, setTimer] = React.useState({ for: "Session", value: 1500 });
+
     const handleBreakClick = () => {
         if (isRunning) {
             return () => null;
@@ -108,12 +108,24 @@ const App = () => {
             return (val) => setBreakValue(val);
         }
     };
-
     const beginTimer = () => {
         setTimerInterval(setInterval(() => {
-            setTimeLeft(pv => {
-                console.log(pv);
-                return pv - 1;
+            setTimer(ps => {
+                if (ps.value !== 0) {
+                    return {...ps, value: ps.value - 1};
+                } else {
+                    if (ps.for === "Session") {
+                        return {
+                            for: "Break",
+                            value: breakValue * 60
+                        };
+                    } else {
+                        return {
+                            for: "Session",
+                            value: sessionValue * 60
+                        };
+                    }
+                }
             });
         }, 1000));
     };
@@ -137,11 +149,10 @@ const App = () => {
     };
 
     const reset = () => {
-        setCurrentLabel("Session");
         setBreakValue(5);
         setSessionValue(25);
         setIsRunning(false);
-        setTimeLeft(1500);
+        setTimer({ for: "Session", value: 1500 });
         clearInterval(timerInterval);
     };
 
@@ -153,7 +164,7 @@ const App = () => {
                     <BreakControl breakValue={breakValue} handleBreakClick={handleBreakClick()} />
                     <SessionControl sessionValue={sessionValue} handleSessionClick={handleSessionClick()} />
                 </div>
-                <Timer currentLabel={currentLabel} timeLeft={timeLeft} />
+                <Timer currentLabel={timer.for} timeLeft={timer.value} />
                 <TimerControls isRunning={isRunning} toggleTimer={toggleTimer} reset={reset} />
             </div>
         </div>
