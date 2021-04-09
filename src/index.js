@@ -8,16 +8,15 @@ const Title = () => (
     <h1 className="m-auto">25 + 5 Clock</h1>
 );
 
-const BreakControl = ({ breakValue, setBreakValue }) => {
-
+const BreakControl = ({ breakValue, handleBreakClick }) => {
     const handleClick = operation => {
         if (operation === "+") {
             if (breakValue < 60) {
-                setBreakValue(pv => pv + 1);
+                handleBreakClick(breakValue + 1);
             }
         } else {
             if (breakValue > 1) {
-                setBreakValue(pv => pv - 1);
+                handleBreakClick(breakValue - 1);
             }
         }
     };
@@ -38,15 +37,15 @@ const BreakControl = ({ breakValue, setBreakValue }) => {
     );
 };
 
-const SessionControl = ({ sessionValue, setSessionValue }) => {
+const SessionControl = ({ sessionValue, handleSessionClick }) => {
     const handleClick = operation => {
         if (operation === "+") {
             if (sessionValue < 60) {
-                setSessionValue(pv => pv + 1);
+                handleSessionClick(pv => pv + 1);
             }
         } else {
             if (sessionValue > 1) {
-                setSessionValue(pv => pv - 1);
+                handleSessionClick(pv => pv - 1);
             }
         }
     };
@@ -66,18 +65,96 @@ const SessionControl = ({ sessionValue, setSessionValue }) => {
     );
 };
 
+const Timer = ({ currentLabel, timeLeft }) => {
+    const [timerDisplay, setTimerDisplay] = React.useState();
+    React.useEffect(() => {
+        const hh = String(Math.floor(timeLeft / 60)).replace(/^(\d)$/, "0$1");
+        const ss = String(Math.floor(timeLeft % 60)).replace(/^(\d)$/, "0$1");
+        setTimerDisplay(`${hh}:${ss}`);
+    }, [timeLeft]);
+    return (
+        <div className="d-flex flex-column align-items-center w-50">
+            <h3 id="timer-label">{currentLabel}</h3>
+            <p id="time-left" className="w-75">{timerDisplay}</p>
+        </div>
+    );
+};
+
+const TimerControls = ({ isRunning, toggleTimer, reset }) => {
+    const startPauseClass = isRunning ? "fas fa-pause" : "fas fa-play";
+    return (
+        <div>
+            <button id="start_stop" className="btn btn-lg shadow-none" onClick={toggleTimer}>
+                <i className={startPauseClass}></i>
+            </button>
+            <button id="reset" className="btn btn-lg shadow-none" onClick={reset}>
+                <i className="fas fa-sync-alt"></i>
+            </button>
+        </div>
+    );
+};
+
 const App = () => {
     const [breakValue, setBreakValue] = React.useState(5);
     const [sessionValue, setSessionValue] = React.useState(25);
+    const [currentLabel, setCurrentLabel] = React.useState("Session");
+    const [timeLeft, setTimeLeft] = React.useState(1500);
+    const [isRunning, setIsRunning] = React.useState(false);
+    const [timerInterval, setTimerInterval] = React.useState();
+    const handleBreakClick = () => {
+        if (isRunning) {
+            return () => null;
+        } else {
+            return (val) => setBreakValue(val);
+        }
+    };
+
+    const beginTimer = () => {
+        setTimerInterval(setInterval(() => {
+            setTimeLeft(pv => {
+                console.log(pv);
+                return pv - 1;
+            });
+        }, 1000));
+    };
+
+    const handleSessionClick = () => {
+        if (isRunning) {
+            return () => null;
+        } else {
+            return (val) => setSessionValue(val);
+        }
+    };
+    
+    const toggleTimer = () => {
+        if (isRunning) {
+            setIsRunning(false);
+            clearInterval(timerInterval);
+        } else {
+            setIsRunning(true);
+            beginTimer();
+        }
+    };
+
+    const reset = () => {
+        setCurrentLabel("Session");
+        setBreakValue(5);
+        setSessionValue(25);
+        setIsRunning(false);
+        setTimeLeft(1500);
+        clearInterval(timerInterval);
+    };
 
     return (
         <div id="outer-container" className="container d-flex justify-content-center">
             <div id="container" className="w-75 d-flex flex-column align-items-center">
                 <Title />
                 <div className="d-flex w-75 justify-content-center mt-3 mb-3">
-                    <BreakControl breakValue={breakValue} setBreakValue={setBreakValue} />
-                    <SessionControl sessionValue={sessionValue} setSessionValue={setSessionValue} />
+                    <BreakControl breakValue={breakValue} handleBreakClick={handleBreakClick()} />
+                    <SessionControl sessionValue={sessionValue} handleSessionClick={handleSessionClick()} />
                 </div>
+                <Timer currentLabel={currentLabel} timeLeft={timeLeft} />
+                <TimerControls isRunning={isRunning} toggleTimer={toggleTimer} reset={reset} />
             </div>
         </div>
     );
