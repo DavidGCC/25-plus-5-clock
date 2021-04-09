@@ -1,0 +1,45 @@
+$theme: (
+    "background": #121212,
+    "primary": #BB86FC,
+    "primary-variant": #3700b3,
+    "secondary": #03DAC6
+);
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: map-get($map: $theme, $key: "background");
+    color: #fff;
+    font-family: "Lato", sans-serif;
+    height: 100vh;
+}
+
+// #outer-container {
+//     height: 100%;
+// }
+
+// #container {
+//     display: flex;
+//     width: 80%;
+//     justify-content: center;
+//     height: 20vh;
+// }
+
+i {
+    color: #fff
+}
+
+.timeControls {
+    font-size: 2rem;
+    height: 3rem;
+    width: 80%;
+    p {
+        margin: auto;
+        width: 6rem;
+        text-align: center;
+    }
+}
