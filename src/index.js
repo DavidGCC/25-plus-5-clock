@@ -11,6 +11,6 @@ const App = () => {
 
 
 ReactDOM.render(
-    document.getElementById("root"),
-    <App />
+    <App />,
+    document.getElementById("root")
 );
