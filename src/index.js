@@ -76,7 +76,7 @@ const App = () => {
     const [sessionValue, setSessionValue] = React.useState(25);
     const [isRunning, setIsRunning] = React.useState(false);
     const [timerInterval, setTimerInterval] = React.useState();
-    const [timer, setTimer] = React.useState({ for: "Session", value: 1 });
+    const [timer, setTimer] = React.useState({ for: "Session", value: 1500 });
     const audioRef = React.useRef(null);
 
     const beginTimer = () => {
