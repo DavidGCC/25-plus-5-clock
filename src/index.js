@@ -76,8 +76,8 @@ const App = () => {
     const [sessionValue, setSessionValue] = React.useState(25);
     const [isRunning, setIsRunning] = React.useState(false);
     const [timerInterval, setTimerInterval] = React.useState();
-    const [timer, setTimer] = React.useState({ for: "Session", value: 1500 });
-
+    const [timer, setTimer] = React.useState({ for: "Session", value: 1 });
+    const audioRef = React.useRef(null);
 
     const beginTimer = () => {
         setTimerInterval(setInterval(() => {
@@ -85,6 +85,8 @@ const App = () => {
                 if (ps.value !== 0) {
                     return { ...ps, value: ps.value - 1 };
                 } else {
+                    audioRef.current.currentTime = 0;
+                    audioRef.current.play();
                     if (ps.for === "Session") {
                         return {
                             for: "Break",
@@ -130,13 +132,14 @@ const App = () => {
             }
         }
     };
-
     const reset = () => {
         setBreakValue(5);
         setSessionValue(25);
         setIsRunning(false);
         setTimer({ for: "Session", value: 1500 });
         clearInterval(timerInterval);
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
     };
 
     return (
@@ -149,6 +152,7 @@ const App = () => {
                 </div>
                 <Timer currentLabel={timer.for} timeLeft={timer.value} />
                 <TimerControls isRunning={isRunning} toggleTimer={toggleTimer} reset={reset} />
+                <audio id="beep" ref={audioRef} src="/beep.mp3" />
             </div>
         </div>
     );
