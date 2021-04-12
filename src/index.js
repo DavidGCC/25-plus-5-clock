@@ -45,9 +45,11 @@ const SessionControl = ({ sessionValue, handleTimeControl }) => {
 const Timer = ({ currentLabel, timeLeft }) => {
     const [timerDisplay, setTimerDisplay] = React.useState();
     React.useEffect(() => {
-        const hh = String(Math.trunc(timeLeft / 60)).replace(/^(\d)$/, "0$1");
-        const ss = String(Math.trunc(timeLeft % 60)).replace(/^(\d)$/, "0$1");
-        setTimerDisplay(`${hh}:${ss}`);
+        let mm = Math.floor(timeLeft / 60);
+        let ss = timeLeft - mm * 60;
+        mm = String(mm).replace(/^(\d)$/, "0$1");
+        ss = String(ss).replace(/^(\d)$/, "0$1");
+        setTimerDisplay(`${mm}:${ss}`);
     }, [timeLeft]);
     return (
         <div className="d-flex flex-column align-items-center w-50">
@@ -78,7 +80,6 @@ const App = () => {
     const [timerInterval, setTimerInterval] = React.useState();
     const [timer, setTimer] = React.useState({ for: "Session", value: 1500 });
     const audioRef = React.useRef(null);
-
     const beginTimer = () => {
         setTimerInterval(setInterval(() => {
             setTimer(ps => {
@@ -133,11 +134,14 @@ const App = () => {
         }
     };
     const reset = () => {
+        if (timerInterval) {
+            setTimerInterval();
+            clearInterval(timerInterval);
+        }
         setBreakValue(5);
         setSessionValue(25);
         setIsRunning(false);
         setTimer({ for: "Session", value: 1500 });
-        clearInterval(timerInterval);
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
     };
@@ -152,7 +156,7 @@ const App = () => {
                 </div>
                 <Timer currentLabel={timer.for} timeLeft={timer.value} />
                 <TimerControls isRunning={isRunning} toggleTimer={toggleTimer} reset={reset} />
-                <audio id="beep" ref={audioRef} src="/beep.mp3" />
+                <audio id="beep" ref={audioRef} src="https://github.com/DavidGCC/25-plus-5-clock/blob/master/public/beep.mp3?raw=true" />
             </div>
         </div>
     );
