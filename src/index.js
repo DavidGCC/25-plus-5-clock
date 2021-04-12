@@ -8,28 +8,16 @@ const Title = () => (
     <h1 className="m-auto">25 + 5 Clock</h1>
 );
 
-const BreakControl = ({ breakValue, handleBreakClick }) => {
-    const handleClick = operation => {
-        if (operation === "+") {
-            if (breakValue < 60) {
-                handleBreakClick(breakValue + 1);
-            }
-        } else {
-            if (breakValue > 1) {
-                handleBreakClick(breakValue - 1);
-            }
-        }
-    };
-
+const BreakControl = ({ breakValue, handleTimeControl }) => {
     return (
         <div className="d-flex flex-column align-items-center">
             <h3 id="break-label">Break Length</h3>
             <div className="timeControls d-flex align-items-center justify-content-around">
-                <button id="break-decrement" onClick={() => handleClick("-")} className="btn btn-lg shadow-none">
+                <button id="break-decrement" onClick={() => handleTimeControl("break", -1)} className="btn btn-lg shadow-none">
                     <i className="far fa-arrow-alt-circle-down fa-2x"></i>
                 </button>
                 <p id="break-length">{breakValue}</p>
-                <button id="break-increment" onClick={() => handleClick("+")} className="btn btn-lg shadow-none">
+                <button id="break-increment" onClick={() => handleTimeControl("break", 1)} className="btn btn-lg shadow-none">
                     <i className="far fa-arrow-alt-circle-up fa-2x"></i>
                 </button>
             </div>
@@ -37,27 +25,16 @@ const BreakControl = ({ breakValue, handleBreakClick }) => {
     );
 };
 
-const SessionControl = ({ sessionValue, handleSessionClick }) => {
-    const handleClick = operation => {
-        if (operation === "+") {
-            if (sessionValue < 60) {
-                handleSessionClick(pv => pv + 1);
-            }
-        } else {
-            if (sessionValue > 1) {
-                handleSessionClick(pv => pv - 1);
-            }
-        }
-    };
+const SessionControl = ({ sessionValue, handleTimeControl }) => {
     return (
         <div className="d-flex flex-column align-items-center">
             <h3 id="session-label">Session Length</h3>
             <div className="timeControls d-flex align-items-center justify-content-around">
-                <button id="session-decrement" onClick={() => handleClick("-")} className="btn btn-lg shadow-none">
+                <button id="session-decrement" onClick={() => handleTimeControl("session", -1)} className="btn btn-lg shadow-none">
                     <i className="far fa-arrow-alt-circle-down fa-2x"></i>
                 </button>
                 <p id="session-length">{sessionValue}</p>
-                <button id="session-increment" onClick={() => handleClick("+")} className="btn btn-lg shadow-none">
+                <button id="session-increment" onClick={() => handleTimeControl("session", 1)} className="btn btn-lg shadow-none">
                     <i className="far fa-arrow-alt-circle-up fa-2x"></i>
                 </button>
             </div>
@@ -68,8 +45,8 @@ const SessionControl = ({ sessionValue, handleSessionClick }) => {
 const Timer = ({ currentLabel, timeLeft }) => {
     const [timerDisplay, setTimerDisplay] = React.useState();
     React.useEffect(() => {
-        const hh = String(Math.floor(timeLeft / 60)).replace(/^(\d)$/, "0$1");
-        const ss = String(Math.floor(timeLeft % 60)).replace(/^(\d)$/, "0$1");
+        const hh = String(Math.trunc(timeLeft / 60)).replace(/^(\d)$/, "0$1");
+        const ss = String(Math.trunc(timeLeft % 60)).replace(/^(\d)$/, "0$1");
         setTimerDisplay(`${hh}:${ss}`);
     }, [timeLeft]);
     return (
@@ -101,18 +78,12 @@ const App = () => {
     const [timerInterval, setTimerInterval] = React.useState();
     const [timer, setTimer] = React.useState({ for: "Session", value: 1500 });
 
-    const handleBreakClick = () => {
-        if (isRunning) {
-            return () => null;
-        } else {
-            return (val) => setBreakValue(val);
-        }
-    };
+
     const beginTimer = () => {
         setTimerInterval(setInterval(() => {
             setTimer(ps => {
                 if (ps.value !== 0) {
-                    return {...ps, value: ps.value - 1};
+                    return { ...ps, value: ps.value - 1 };
                 } else {
                     if (ps.for === "Session") {
                         return {
@@ -130,14 +101,6 @@ const App = () => {
         }, 1000));
     };
 
-    const handleSessionClick = () => {
-        if (isRunning) {
-            return () => null;
-        } else {
-            return (val) => setSessionValue(val);
-        }
-    };
-    
     const toggleTimer = () => {
         if (isRunning) {
             setIsRunning(false);
@@ -145,6 +108,26 @@ const App = () => {
         } else {
             setIsRunning(true);
             beginTimer();
+        }
+    };
+
+    const handleTimeControl = (type, amount) => {
+        if (!isRunning) {
+            if (type === "break") {
+                if (breakValue + amount > 0 && breakValue + amount <= 60) {
+                    setBreakValue(breakValue + amount);
+                    if (timer.for === "Break") {
+                        setTimer({...timer, value: (breakValue + amount) * 60});
+                    }
+                }
+            } else {
+                if (sessionValue + amount > 0 && sessionValue + amount <= 60) {
+                    setSessionValue(sessionValue + amount);
+                    if (timer.for === "Session") {
+                        setTimer({...timer, value: (sessionValue + amount) * 60});
+                    }
+                }
+            }
         }
     };
 
@@ -161,8 +144,8 @@ const App = () => {
             <div id="container" className="w-75 d-flex flex-column align-items-center">
                 <Title />
                 <div className="d-flex w-75 justify-content-center mt-3 mb-3">
-                    <BreakControl breakValue={breakValue} handleBreakClick={handleBreakClick()} />
-                    <SessionControl sessionValue={sessionValue} handleSessionClick={handleSessionClick()} />
+                    <BreakControl breakValue={breakValue} handleTimeControl={handleTimeControl} />
+                    <SessionControl sessionValue={sessionValue} handleTimeControl={handleTimeControl} />
                 </div>
                 <Timer currentLabel={timer.for} timeLeft={timer.value} />
                 <TimerControls isRunning={isRunning} toggleTimer={toggleTimer} reset={reset} />
