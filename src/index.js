@@ -4,6 +4,39 @@ import ReactDOM from "react-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./index.scss";
 
+
+// got this interval function off of internet
+// plain interval didn't seem to work
+
+
+function interval(fn, duration) {
+    var _this = this;
+    this.baseline = undefined;
+
+    this.run = function () {
+        if (_this.baseline === undefined) {
+            _this.baseline = new Date().getTime();
+        }
+        fn();
+        var end = new Date().getTime();
+        _this.baseline += duration;
+
+        var nextTick = duration - (end - _this.baseline);
+        if (nextTick < 0) {
+            nextTick = 0;
+        }
+
+        _this.timer = setTimeout(function () {
+            _this.run(end);
+        }, nextTick);
+    };
+
+    this.stop = function () {
+        clearTimeout(_this.timer);
+    };
+}
+
+
 const Title = () => (
     <h1 className="m-auto">25 + 5 Clock</h1>
 );
@@ -81,36 +114,38 @@ const App = () => {
     const [timer, setTimer] = React.useState({ for: "Session", value: 1500 });
     const audioRef = React.useRef(null);
     const beginTimer = () => {
-        setTimerInterval(setInterval(() => {
-            setTimer(ps => {
-                if (ps.value !== 0) {
-                    return { ...ps, value: ps.value - 1 };
+        setTimer(ps => {
+            if (ps.value !== 0) {
+                return { ...ps, value: ps.value - 1 };
+            } else {
+                audioRef.current.currentTime = 0;
+                audioRef.current.play();
+                if (ps.for === "Session") {
+                    return {
+                        for: "Break",
+                        value: breakValue * 60
+                    };
                 } else {
-                    audioRef.current.currentTime = 0;
-                    audioRef.current.play();
-                    if (ps.for === "Session") {
-                        return {
-                            for: "Break",
-                            value: breakValue * 60
-                        };
-                    } else {
-                        return {
-                            for: "Session",
-                            value: sessionValue * 60
-                        };
-                    }
+                    return {
+                        for: "Session",
+                        value: sessionValue * 60
+                    };
                 }
-            });
-        }, 1000));
+            }
+        });
     };
 
     const toggleTimer = () => {
         if (isRunning) {
             setIsRunning(false);
-            clearInterval(timerInterval);
+            if (timerInterval) {
+                timerInterval.stop();
+            } 
         } else {
             setIsRunning(true);
-            beginTimer();
+            const betterInterval = new interval(beginTimer, 1000);
+            setTimerInterval(betterInterval);
+            betterInterval.run();
         }
     };
 
@@ -120,14 +155,14 @@ const App = () => {
                 if (breakValue + amount > 0 && breakValue + amount <= 60) {
                     setBreakValue(breakValue + amount);
                     if (timer.for === "Break") {
-                        setTimer({...timer, value: (breakValue + amount) * 60});
+                        setTimer({ ...timer, value: (breakValue + amount) * 60 });
                     }
                 }
             } else {
                 if (sessionValue + amount > 0 && sessionValue + amount <= 60) {
                     setSessionValue(sessionValue + amount);
                     if (timer.for === "Session") {
-                        setTimer({...timer, value: (sessionValue + amount) * 60});
+                        setTimer({ ...timer, value: (sessionValue + amount) * 60 });
                     }
                 }
             }
@@ -136,7 +171,7 @@ const App = () => {
     const reset = () => {
         if (timerInterval) {
             setTimerInterval();
-            clearInterval(timerInterval);
+            timerInterval.stop();
         }
         setBreakValue(5);
         setSessionValue(25);
